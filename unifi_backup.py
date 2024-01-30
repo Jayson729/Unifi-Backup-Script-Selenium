@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from unifi_backup_settings import UnifiBackupSettings, NewUISettings, CurrentUISettings, UISettings
 from sites import get_unifi_backup_settings
 
 
@@ -28,7 +29,7 @@ def move_file_by_extension(downloads_folder: str, path_to_move: str, extension: 
             shutil.move(absolute_file_location, path_to_move)
 
 
-def backup_network_settings(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
+def backup_network_settings_current_UI_selenium(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
     try:
         driver.get(site)
         backups_button = WebDriverWait(driver, 60).until(
@@ -44,11 +45,17 @@ def backup_network_settings(site: str, driver: webdriver.Edge | webdriver.Chrome
             EC.element_to_be_clickable(download_button2)).click()
         time.sleep(10)
         return 0
-    except:
-        return 1
+    # if it fails for any reason except for KeyboardInterrupt, then just continue and return failure
+    # reasoning behind this is that we don't want to restart entire program if backup fails, simply
+    # log the failure and continue. We do want to exit if user says to though.
+    except Exception as e:
+        if e == KeyboardInterrupt:
+            KeyboardInterrupt()
+        else:
+            return 1
 
 
-def backup_OS_settings(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
+def backup_OS_settings_current_UI_selenium(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
     try:
         driver.get(site)
         time.sleep(5)
@@ -116,6 +123,55 @@ def get_webdriver() -> webdriver.Edge | webdriver.Chrome | webdriver.Firefox:
         return driver
 
 
+def backup_network_current_UI(backup_setting: UnifiBackupSettings, driver, network_site, downloads_path, current_datetime, files_not_backed_up):
+    new_filename = f"{backup_setting.location}_unifi_network_backup_{current_datetime}.unf"
+    path_to_download = os.path.join(
+        downloads_path, "unifi_backups", backup_setting.location, new_filename
+    )
+    if backup_network_settings_current_UI_selenium(network_site, driver):
+        print(
+            f'Could not backup {backup_setting.location} network settings')
+        files_not_backed_up.append(
+            f'{backup_setting.location} Network')
+    else:
+        move_file_by_extension(
+            downloads_path, path_to_download, ".unf")
+
+
+def backup_OS_current_UI(backup_setting: UnifiBackupSettings, driver, OS_site, downloads_path, current_datetime, files_not_backed_up):
+    new_filename = f"{backup_setting.location}_unifi_os_backup_{current_datetime}.unifi"
+    path_to_download = os.path.join(
+        downloads_path, "unifi_backups", backup_setting.location, new_filename
+    )
+    if backup_OS_settings_current_UI_selenium(OS_site, driver):
+        print(
+            f'Could not backup {backup_setting.location} OS settings')
+        files_not_backed_up.append(f'{backup_setting.location} OS')
+    else:
+        move_file_by_extension(
+            downloads_path, path_to_download, ".unifi")
+
+
+def backup_current_UI(backup_setting: UnifiBackupSettings, driver, downloads_path, current_datetime, files_not_backed_up):
+    # looks confusing but basically just checking if we're meant to backup network settings
+    if backup_setting.ui_settings.current_ui_settings.backup_network:
+        network_site = f'https://unifi.ui.com/consoles/{backup_setting.ip}/network/default/settings/system'
+    # same thing for os settings
+    if backup_setting.ui_settings.current_ui_settings.backup_OS:
+        OS_site = f'https://unifi.ui.com/consoles/{backup_setting.ip}/console-settings'
+
+    if network_site is not None:
+        backup_network_current_UI(backup_setting, driver, network_site,
+                                  downloads_path, current_datetime, files_not_backed_up)
+    elif OS_site is not None:
+        backup_OS_current_UI(backup_setting, driver, OS_site,
+                             downloads_path, current_datetime, files_not_backed_up)
+
+
+def backup_new_UI(backup_setting: UnifiBackupSettings, downloads_path, current_datetime, files_not_backed_up):
+    pass
+
+
 def login_unifi_user(driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
     driver.get('https://unifi.ui.com/consoles')
     input('Press enter in this console when you are logged in')
@@ -134,39 +190,14 @@ def main():
 
     files_not_backed_up = []
     for backup_setting in backup_settings:
-        network_site = None
-        OS_site = None
-        if backup_setting.backup_network:
-            network_site = f'https://unifi.ui.com/consoles/{backup_setting.ip}/network/default/settings/system'
-        if backup_setting.backup_OS:
-            OS_site = f'https://unifi.ui.com/consoles/{backup_setting.ip}/console-settings'
-
-        if network_site is not None:
-            new_filename = f"{backup_setting.location}_unifi_network_backup_{current_datetime}.unf"
-            path_to_download = os.path.join(
-                downloads_path, "unifi_backups", backup_setting.location, new_filename
-            )
-            if backup_network_settings(network_site, driver):
-                print(
-                    f'Could not backup {backup_setting.location} network settings')
-                files_not_backed_up.append(
-                    f'{backup_setting.location} Network')
-            else:
-                move_file_by_extension(
-                    downloads_path, path_to_download, ".unf")
-
-        if OS_site is not None:
-            new_filename = f"{backup_setting.location}_unifi_os_backup_{current_datetime}.unifi"
-            path_to_download = os.path.join(
-                downloads_path, "unifi_backups", backup_setting.location, new_filename
-            )
-            if backup_OS_settings(OS_site, driver):
-                print(
-                    f'Could not backup {backup_setting.location} OS settings')
-                files_not_backed_up.append(f'{backup_setting.location} OS')
-            else:
-                move_file_by_extension(
-                    downloads_path, path_to_download, ".unifi")
+        if backup_setting.ui_settings.current_ui_settings is not None:
+            backup_current_UI(backup_setting, driver, downloads_path,
+                              current_datetime, files_not_backed_up)
+        elif backup_setting.ui_settings.new_ui_settings is not None:
+            backup_new_UI(backup_setting, driver, downloads_path,
+                          current_datetime, files_not_backed_up)
+        else:
+            print('uh oh you shouldn\'t be here')
 
     if files_not_backed_up != []:
         print('Error backing up the following files:')
