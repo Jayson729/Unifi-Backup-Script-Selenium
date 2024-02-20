@@ -74,23 +74,30 @@ def get_webdriver_from_userinput(userinput: int) -> webdriver.Edge | webdriver.C
 
 def backup_unifi(backup_setting: UnifiBackupSettings, driver, files_not_backed_up):
     if backup_setting.ui_settings == UISettings.BACKUP_NETWORK_AND_OS:
-        if backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver):
-            print(
-                f'Could not backup {backup_setting.location} NETWORK settings')
-            files_not_backed_up.append(f'{backup_setting.location} NETWORK')
-
-        if backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver):
-            print(f'Could not backup {backup_setting.location} OS settings')
-            files_not_backed_up.append(f'{backup_setting.location} OS')
+        try:
+           backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver)
+           backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver)
+        except Exception as e:
+            if e == KeyboardInterrupt:
+                KeyboardInterrupt()
+            print(f'Could not backup {backup_setting.location} NETWORK or OS settings')
+            files_not_backed_up.append(f'{backup_setting.location} NETWORK or OS')
 
     elif backup_setting.ui_settings == UISettings.BACKUP_ONLY_NETWORK:
-        if backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver):
-            print(
-                f'Could not backup {backup_setting.location} NETWORK settings')
+        try:
+            backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver)
+        except Exception as e:
+            if e == KeyboardInterrupt:
+                KeyboardInterrupt()
+            print(f'Could not backup {backup_setting.location} NETWORK settings')
             files_not_backed_up.append(f'{backup_setting.location} NETWORK')
 
     elif backup_setting.ui_settings == UISettings.BACKUP_ONLY_OS:
-        if backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver):
+        try:
+            backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver)
+        except Exception as e:
+            if e == KeyboardInterrupt:
+                KeyboardInterrupt()
             print(f'Could not backup {backup_setting.location} OS settings')
             files_not_backed_up.append(f'{backup_setting.location} OS')
 
