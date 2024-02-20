@@ -17,6 +17,7 @@ class UnifiBackupSettings:
     ip: str
     downloads_path: str
     current_datetime: str
+    # version: str
     ui_settings: UISettings = UISettings.BACKUP_NETWORK_AND_OS
     network_link_format: str = 'https://unifi.ui.com/consoles/{ip}/network/default/settings/system'
     os_link_format: str = 'https://unifi.ui.com/consoles/{ip}/console-settings'
@@ -26,5 +27,9 @@ class UnifiBackupSettings:
     def __post_init__(self):
         self.network_filename: str = f'{self.location}_unifi_network_backup_{self.current_datetime}.unf'
         self.os_filename: str = f'{self.location}_unifi_os_backup_{self.current_datetime}.unifi'
+
         self.network_site = self.network_link_format.format(ip=self.ip)
+        # self.network_site = self.network_link_format.format(ip=self.ip, version=self.version) # <--- comment out above line
+
         self.os_site = self.os_link_format.format(ip=self.ip)
+        # self.os_site = self.os_link_format.format(ip=self.ip, version=self.version) # <--- comment out above line
