@@ -1,5 +1,5 @@
 from unifi_backup_settings import UnifiBackupSettings
-from company_information import get_company_information
+from device_information import get_device_information
 
 
 class Sites:
@@ -10,7 +10,7 @@ class Sites:
 
 def _get_unifi_backup_settings(downloads_path, current_datetime) -> set[UnifiBackupSettings]:
     backup_settings = []
-    for company, information in get_company_information().items():
+    for company, information in get_device_information().items():
         backup_settings.append(UnifiBackupSettings(
             company, **information, downloads_path=downloads_path, current_datetime=current_datetime))
     return backup_settings

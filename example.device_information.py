@@ -5,6 +5,7 @@ from selenium_scripts import backup_network_settings_current_UI_selenium, backup
 def get_company_information():
     unifi_company_information: dict[str, dict[str, ]] = {
         # example device backing up both OS and network using the default selenium script (current UI)
+        # the ip is the value in the URL when accessing network/os settings
         'DEVICE 1':     {'ip': '000000000000000000000000000000000000000000000000000000000000:000000000', },
 
         # example device backing up only OS settings using the default selenium script (current UI)
