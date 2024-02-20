@@ -21,6 +21,7 @@ def get_company_information():
         # could add an extra field to unifi_backup_settings.py, add it to the format in __post_init__(), and 
         # add that in curly braces in the inputted format. I've provided how to do this in comments in these files.
         'DEVICE 4':     {'ip': '000000000000000000000000000000000000000000000000000000000000:000000000',
+                         'version': '0.0.0',
                          'network_link_format': 'https://unifi.ui.com/{version}/consoles/{ip}/network/default/settings/system',
                          'os_link_format': 'https://unifi.ui.com/{version}/consoles/{ip}/console-settings',
                          'selenium_script_network': backup_network_settings_current_UI_selenium,    # this would likely be a custom script you made, this is here as an example
