@@ -14,7 +14,7 @@ class Browsers:
     GOOGLE_CHROME = 3
 
 
-def move_file_by_extension(downloads_folder: str, path_to_move: str, extension: str):
+def move_file_by_extension(downloads_folder: str, path_to_move: str, extension: str) -> None:
     for filename in os.listdir(downloads_folder):
         if filename.endswith(extension):
             if path_to_move is None:
@@ -72,29 +72,36 @@ def get_webdriver_from_userinput(userinput: int) -> webdriver.Edge | webdriver.C
     return driver
 
 
-def backup_unifi(backup_setting: UnifiBackupSettings, driver, files_not_backed_up):
+def backup_unifi(backup_setting: UnifiBackupSettings, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox, files_not_backed_up: list[str]) -> None:
     if backup_setting.ui_settings == UISettings.BACKUP_NETWORK_AND_OS:
         try:
-           backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver)
-           backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver)
+            backup_setting.selenium_script_network(
+                site=backup_setting.network_site, driver=driver)
+            backup_setting.selenium_script_os(
+                site=backup_setting.os_site, driver=driver)
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
-            print(f'Could not backup {backup_setting.location} NETWORK or OS settings')
-            files_not_backed_up.append(f'{backup_setting.location} NETWORK or OS')
+            print(
+                f'Could not backup {backup_setting.location} NETWORK or OS settings')
+            files_not_backed_up.append(
+                f'{backup_setting.location} NETWORK or OS')
 
     elif backup_setting.ui_settings == UISettings.BACKUP_ONLY_NETWORK:
         try:
-            backup_setting.selenium_script_network(site=backup_setting.network_site, driver=driver)
+            backup_setting.selenium_script_network(
+                site=backup_setting.network_site, driver=driver)
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
-            print(f'Could not backup {backup_setting.location} NETWORK settings')
+            print(
+                f'Could not backup {backup_setting.location} NETWORK settings')
             files_not_backed_up.append(f'{backup_setting.location} NETWORK')
 
     elif backup_setting.ui_settings == UISettings.BACKUP_ONLY_OS:
         try:
-            backup_setting.selenium_script_os(site=backup_setting.os_site, driver=driver)
+            backup_setting.selenium_script_os(
+                site=backup_setting.os_site, driver=driver)
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
@@ -112,12 +119,12 @@ def backup_unifi(backup_setting: UnifiBackupSettings, driver, files_not_backed_u
     move_file_by_extension(backup_setting.downloads_path, os_path, ".unifi")
 
 
-def login_unifi_user(driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
+def login_unifi_user(driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox) -> None:
     driver.get('https://unifi.ui.com/consoles')
     input('Press enter in this console when you are logged in')
 
 
-def main():
+def main() -> None:
     driver = get_webdriver()
     downloads_path = os.path.join(Path.home(), "Downloads")
     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
