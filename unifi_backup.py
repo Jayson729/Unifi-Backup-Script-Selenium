@@ -73,12 +73,24 @@ def get_webdriver_from_userinput(userinput: int) -> webdriver.Edge | webdriver.C
 
 
 def backup_unifi(backup_setting: UnifiBackupSettings, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox, files_not_backed_up: list[str]) -> None:
+    os_path = os.path.join(
+        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.network_filename
+    )
+    network_path = os.path.join(
+        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.os_filename
+    )
+
     if backup_setting.ui_settings == UISettings.BACKUP_NETWORK_AND_OS:
         try:
             backup_setting.selenium_script_network(
                 site=backup_setting.network_site, driver=driver)
+            move_file_by_extension(
+                backup_setting.downloads_path, network_path, ".unf")
+
             backup_setting.selenium_script_os(
                 site=backup_setting.os_site, driver=driver)
+            move_file_by_extension(
+                backup_setting.downloads_path, os_path, ".unifi")
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
@@ -91,6 +103,8 @@ def backup_unifi(backup_setting: UnifiBackupSettings, driver: webdriver.Edge | w
         try:
             backup_setting.selenium_script_network(
                 site=backup_setting.network_site, driver=driver)
+            move_file_by_extension(
+                backup_setting.downloads_path, network_path, ".unf")
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
@@ -102,21 +116,13 @@ def backup_unifi(backup_setting: UnifiBackupSettings, driver: webdriver.Edge | w
         try:
             backup_setting.selenium_script_os(
                 site=backup_setting.os_site, driver=driver)
+            move_file_by_extension(
+                backup_setting.downloads_path, os_path, ".unifi")
         except Exception as e:
             if e == KeyboardInterrupt:
                 KeyboardInterrupt()
             print(f'Could not backup {backup_setting.location} OS settings')
             files_not_backed_up.append(f'{backup_setting.location} OS')
-
-    os_path = os.path.join(
-        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.network_filename
-    )
-    network_path = os.path.join(
-        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.os_filename
-    )
-
-    move_file_by_extension(backup_setting.downloads_path, network_path, ".unf")
-    move_file_by_extension(backup_setting.downloads_path, os_path, ".unifi")
 
 
 def login_unifi_user(driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox) -> None:

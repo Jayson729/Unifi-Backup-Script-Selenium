@@ -28,7 +28,7 @@ def backup_network_settings_current_UI_selenium(site: str, driver: webdriver.Edg
     WebDriverWait(driver, 60).until(EC.element_to_be_clickable(download2_button)).click()
     time.sleep(10)
 
-def new_backup_network_settings_current_UI_selenium(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
+def backup_network_settings_new_UI_selenium(site: str, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox):
     backup_download_name = 'backupDownload'
     driver.get(site)
     backup_download_button = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.NAME, backup_download_name)))
