@@ -74,10 +74,10 @@ def get_webdriver_from_userinput(userinput: int) -> webdriver.Edge | webdriver.C
 
 def backup_unifi(backup_setting: UnifiBackupSettings, driver: webdriver.Edge | webdriver.Chrome | webdriver.Firefox, files_not_backed_up: list[str]) -> None:
     os_path = os.path.join(
-        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.network_filename
+        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.os_filename
     )
     network_path = os.path.join(
-        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.os_filename
+        backup_setting.downloads_path, "unifi_backups", backup_setting.location, backup_setting.network_filename
     )
 
     if backup_setting.ui_settings == UISettings.BACKUP_NETWORK_AND_OS:
